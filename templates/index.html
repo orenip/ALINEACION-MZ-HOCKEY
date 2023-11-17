@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados</title>
+</head>
+<body>
+    <h2>Valores más altos:</h2>
+
+    <h3>CEN (4 valores diferentes):</h3>
+    <ul>
+        {% for player in top_cen %}
+            <li>Número {{ player[0] }} - {{ player[1] }}: {{ player[2] }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>ALA (8 mejores):</h3>
+    <ul>
+        {% for player in top_ala %}
+            <li>Número {{ player[0] }} - {{ player[1] }}: {{ player[2] }}</li>
+        {% endfor %}
+        <li>Reservas:</li>
+        {% for reserva in reservas_ala %}
+            <li>Número {{ reserva[0] }} - {{ reserva[1] }}: {{ reserva[2] }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h3>DEF (8 mejores):</h3>
+    <ul>
+        {% for player in top_def %}
+            <li>Número {{ player[0] }} - {{ player[1] }}: {{ player[2] }}</li>
+        {% endfor %}
+        <li>Reservas:</li>
+        {% for reserva in reservas_def %}
+            <li>Número {{ reserva[0] }} - {{ reserva[1] }}: {{ reserva[2] }}</li>
+        {% endfor %}
+    </ul>
+
+</ul>
+</body>
+</html>
