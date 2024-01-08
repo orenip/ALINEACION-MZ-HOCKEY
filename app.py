@@ -1,13 +1,9 @@
-from flask import Flask, render_template
 import pandas as pd
 import os
 import sys
+import keyboard
 
-app = Flask(__name__)
-
-# Ruta principal del programa
-@app.route('/')
-def index():
+def cargar_archivo_excel():
     # Obtén la ruta del directorio donde se encuentra este script
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -21,25 +17,18 @@ def index():
 
     # Verifica si el archivo existe antes de intentar abrirlo
     if not os.path.exists(excel_file_path):
-        return f"Error: El archivo Excel no se encuentra en la ruta especificada: {excel_file_path}"
+        return None, f"Error: El archivo Excel no se encuentra en la ruta especificada: {excel_file_path}"
 
-
-    # Resto del código para leer y procesar el archivo Excel
     try:
         # Lee el archivo Excel
         df = pd.read_excel(excel_file_path)
+        return df, None
+    except Exception as e:
+        return None, f"Error al procesar el archivo Excel: {str(e)}"
 
-        # Elimina filas con valores nulos en columnas relevantes
-        df = df.dropna(subset=['DEF', 'TOTALES'])
-
-        # Verifica los nombres exactos de las columnas en tu archivo Excel
-        required_columns = ['Numero', 'NOMBRE', 'CEN', 'ALA', 'DEF', 'CTL', 'TOTALES']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-
-        if missing_columns:
-            return f"Error: Las siguientes columnas no se encontraron en el archivo Excel: {', '.join(missing_columns)}"
-
-        # Encuentra los 4 mejores en la columna CEN con CTL >= 8
+def procesar_datos(df):
+    try:
+    # Encuentra los 4 mejores en la columna CEN con CTL >= 8
         top_cen = df[df['CTL'] >= 8].nlargest(4, 'CEN')[['Numero', 'NOMBRE', 'CEN']]
 
         # Crea una nueva columna 'Posicion' basada en el valor mayor entre ALA y DEF
@@ -73,14 +62,32 @@ def index():
                         top.at[top_index, columna] = siguiente_mejor[columna].values[0]
                         top.at[top_index, 'TOTALES'] = siguiente_mejor['TOTALES'].values[0]
 
-
-        return render_template('index.html', top_cen=top_cen.values.tolist(), top_ala=top_ala.values.tolist(),
-                               top_def=top_def.values.tolist(), reservas_ala=reservas_ala.values.tolist(),
-                               reservas_def=reservas_def.values.tolist())
+        return top_cen, top_ala, top_def, reservas_ala, reservas_def
     except Exception as e:
-        return f"Error al procesar el archivo Excel: {str(e)}"
-
+            print(f"Error en procesar_datos: {str(e)}")
+            return None, None, None, None, None
 
 if __name__ == '__main__':
-    # Ejecuta la aplicación Flask con el modo de depuración activado
-    app.run(debug=True)
+    # Cargar archivo Excel
+    datos, error = cargar_archivo_excel()
+    try:
+        if error:
+            print(error)
+        else:
+            print("Archivo Excel cargado correctamente.")
+            # Procesar datos
+            top_cen, top_ala, top_def, reservas_ala, reservas_def = procesar_datos(datos)
+
+            # Imprimir o hacer lo que necesites con los resultados
+            print("Top CEN:", top_cen)
+            print("Top ALA:", top_ala)
+            print("Top DEF:", top_def)
+            print("Reservas ALA:", reservas_ala)
+            print("Reservas DEF:", reservas_def)
+    except Exception as e:
+        print(f"Error inesperado: {str(e)}")
+        input("Presiona Enter para salir...")
+
+    # Retardo de 10 segundos antes de salir
+    print("Presiona la tecla 'Esc' para salir...")
+    keyboard.wait('esc')
